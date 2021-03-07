@@ -1,3 +1,70 @@
+This example show how to make a store and following the flux-architecture in vue3 and without vuex
+
+The idea from is coming from:
+https://medium.com/@mario.brendel1990/vue-3-the-new-store-a7569d4a546f
+
+It basicly means that vuex become useless in vue3...
+
+Here is the gist:
+
+```
+import {reactive, readonly} from 'vue';
+
+export abstract class Store<T extends Object> {
+    protected state: T;
+
+    constructor() {
+        let data = this.data();
+        this.setup(data);
+        this.state = reactive(data) as T;
+    }
+
+    protected abstract data(): T
+
+    protected setup(data: T): void {}
+
+    public getState(): T {
+        return readonly(this.state) as T
+    }
+}
+
+interface CountState extends Object {
+    count: number
+}
+
+class CountStore extends Store<CountState> 
+{
+    protected data(): CountState {
+        return {
+            count: 0
+        };
+    }
+    
+    incrementCount() {
+        this.state.count++;
+    }
+    
+    incrementAsync() {
+        setTimeout(()=>this.incrementCount(),1000);
+    }
+}
+
+export const countStore: CountStore = new CountStore;
+```
+
+Unlike vuex, our state object is strongly typed, and the same for mutation / action methods.
+
+```
+import {countStore} from '../store/CountStore';
+setup: () => {
+    let currentCount = computed(()=>countStore.getState().count);
+    return { currentCount, incrementCount}
+},
+function onClick() {
+    countStore.incrementAsync();
+}
+```
+
 # Vue 3 + Typescript + Vite
 
 This template should help get you started developing with Vue 3 and Typescript in Vite.
